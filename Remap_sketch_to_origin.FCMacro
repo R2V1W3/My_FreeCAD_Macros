@@ -1,0 +1,83 @@
+import FreeCAD as App
+import FreeCADGui as Gui
+
+import warnings
+# Ignore only deprecation warnings
+warnings.filterwarnings('ignore', category=DeprecationWarning)
+
+# 1. Grab the current selected sketch
+selected_objects = Gui.Selection.getSelection()
+
+if selected_objects and selected_objects[0].TypeId == "Sketcher::SketchObject":
+    sketch = selected_objects[0]
+    doc = App.ActiveDocument
+    
+    # 2. Find the PartDesign Body containing the sketch
+    body = None
+    if hasattr(sketch, "InList"):
+        for obj in sketch.InList:
+            if obj.TypeId == "PartDesign::Body":
+                body = obj
+                break
+                
+    if not body:
+        print("Error: The selected sketch must be inside a PartDesign Body to map to Origin planes.")
+    else:
+        # 3. Capture the absolute 3D position before altering anything
+        global_placement = sketch.getGlobalPlacement()
+        
+        # 4. Detach the sketch to reset its local properties safely
+        if hasattr(sketch, "AttachmentSupport"):
+            sketch.AttachmentSupport = None
+        elif hasattr(sketch, "Support"):
+            sketch.Support = None
+        if hasattr(sketch, "MapMode"):
+            sketch.MapMode = "Deactivated"
+        doc.recompute()
+        
+        # 5. Define standard origin plane names relative to the Body
+        plane_names = ["XY_Plane", "XZ_Plane", "YZ_Plane"]
+        best_plane = None
+        min_angle = 180.0
+        
+        # 6. Find the plane that matches the sketch's physical orientation
+        sketch_normal = global_placement.Rotation.multVec(App.Vector(0, 0, 1))
+        
+        for name in plane_names:
+            plane_obj = body.getObject(name)
+            if plane_obj:
+                plane_normal = plane_obj.Placement.Rotation.multVec(App.Vector(0, 0, 1))
+                angle = sketch_normal.getAngle(plane_normal) * (180.0 / 3.14159265)
+                # Keep angle under 90 deg (planes are bidirectional)
+                if angle > 90.0:
+                    angle = 180.0 - angle
+                
+                if angle < min_angle:
+                    min_angle = angle
+                    best_plane = plane_obj
+
+        # 7. Apply the attachment and recalculate the required offset
+        if best_plane:
+            # Set the Attachment Support to the target Plane
+            if hasattr(sketch, "AttachmentSupport"):
+                sketch.AttachmentSupport = (best_plane, [])
+            else:
+                sketch.Support = (best_plane, [''])
+                
+            sketch.MapMode = "FlatFace"
+            doc.recompute()
+            
+            # The Magic Step: Calculate AttachmentOffset to preserve world position
+            # local_offset = (Plane_Placement)^-1 * Global_Placement
+            plane_global = best_plane.getGlobalPlacement()
+            needed_offset = plane_global.inverse().multiply(global_placement)
+            
+            sketch.AttachmentOffset = needed_offset
+            doc.recompute()
+            
+            print(f"Success! Attached '{sketch.Label}' to '{best_plane.Label}'.")
+            print(f"Offset calculated to preserve original spatial position.")
+        else:
+            print("Error: Could not locate origin planes inside the PartDesign Body.")
+else:
+    print("Please select a single sketch first.")
