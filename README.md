@@ -1,6 +1,6 @@
 # My FreeCAD Macros
 
-# <ins>Remap Sketch To LCS Origin Plane Macro</ins>
+# * <ins>Remap Sketch To LCS Origin Plane Macro</ins>
 This Macro detaches selected Sketch and reattaches it to the nearest body origin plane, and applies appropriate offsets to preserve original spatial position. 
 #
 Please use updated **Remap_Sketch_to_LCS.FCMacro**. 
