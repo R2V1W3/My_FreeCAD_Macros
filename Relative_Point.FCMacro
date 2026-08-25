@@ -1,0 +1,101 @@
+import FreeCAD as App
+import FreeCADGui as Gui
+from PySide import QtWidgets
+import re
+
+def create_constrained_relative_point_single_box():
+    # 1. Ensure a document is open
+    if not App.activeDocument():
+        QtWidgets.QMessageBox.warning(None, "Error", "No active document found.")
+        return
+
+    # 2. Get selection data
+    selection_list = Gui.Selection.getSelectionEx()
+    if not selection_list:
+        QtWidgets.QMessageBox.warning(None, "Selection Error", "Please select exactly ONE vertex point.")
+        return
+
+    sel_obj = selection_list[0]
+    sketch = sel_obj.Object
+
+    # 3. Ensure we are working with a sketch
+    if not sketch.isDerivedFrom("Sketcher::SketchObject"):
+        QtWidgets.QMessageBox.warning(None, "Selection Error", "The selected object is not a Sketch.")
+        return
+
+    # 4. Enforce strict single-vertex selection
+    sub_elements = sel_obj.SubElementNames
+    if not sub_elements or len(sub_elements) != 1:
+        QtWidgets.QMessageBox.warning(None, "Selection Error", "Please select exactly ONE vertex point.")
+        return
+        
+    vertex_name = sub_elements[0]
+    if "Vertex" not in vertex_name:
+        QtWidgets.QMessageBox.warning(None, "Selection Error", f"You selected '{vertex_name}'. Please select a Vertex point.")
+        return
+
+    # 5. Map the UI Vertex Name safely to internal coordinates
+    try:
+        ui_index = int(re.search(r'\d+', vertex_name).group())
+        geo_index, internal_vertex_pos = sketch.getGeoVertexIndex(ui_index - 1)
+        ref_geometry = sketch.getPoint(geo_index, internal_vertex_pos)
+    except Exception as e:
+        QtWidgets.QMessageBox.warning(None, "Error", f"Failed to map vertex indices: {str(e)}")
+        return
+
+    # 6. Single Box Input Dialog for X and Y Offsets
+    input_text, ok = QtWidgets.QInputDialog.getText(
+        None, 
+        "Relative Offset", 
+        "Enter X, Y offsets in mm (e.g., 15, -10):",
+        QtWidgets.QLineEdit.Normal,
+        "0, 0"
+    )
+    if not ok or not input_text.strip(): 
+        return
+
+    # Parse coordinates out of the comma-separated text string
+    try:
+        parts = [p.strip() for p in input_text.split(",")]
+        if len(parts) != 2:
+            raise ValueError("Please provide exactly two numbers separated by a comma.")
+        dx = float(parts[0])
+        dy = float(parts[1])
+    except ValueError as e:
+        QtWidgets.QMessageBox.warning(None, "Input Error", f"Invalid format!\n{str(e)}")
+        return
+
+    # 7. Compute new coordinates
+    new_x = ref_geometry.x + dx
+    new_y = ref_geometry.y + dy
+
+    # 8. Add point and construct constraints inside a safe transaction
+    App.activeDocument().openTransaction("Create Constrained Relative Point")
+    try:
+        from Part import Point
+        from Sketcher import Constraint
+        
+        # Insert point geometry
+        point_index = sketch.addGeometry(Point(App.Vector(new_x, new_y, 0)), False)
+        
+        # Convert to blue construction line element
+        sketch.toggleConstruction(point_index)
+        
+        # Point internal vertex tracking (Single-point objects have exactly one vertex index: 1)
+        new_point_vertex_pos = 1
+        
+        # Apply Horizontal Distance Constraint (DistanceX)
+        sketch.addConstraint(Constraint("DistanceX", geo_index, internal_vertex_pos, point_index, new_point_vertex_pos, dx))
+        
+        # Apply Vertical Distance Constraint (DistanceY)
+        sketch.addConstraint(Constraint("DistanceY", geo_index, internal_vertex_pos, point_index, new_point_vertex_pos, dy))
+        
+        App.activeDocument().commitTransaction()
+        sketch.recompute()
+        print(f"Successfully created and constrained point relative to {vertex_name} by X:{dx}, Y:{dy}")
+        
+    except Exception as e:
+        App.activeDocument().abortTransaction()
+        QtWidgets.QMessageBox.critical(None, "Error", f"Failed to add constrained point: {str(e)}")
+
+create_constrained_relative_point_single_box()
