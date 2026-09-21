@@ -33,7 +33,7 @@ Place **InitGui.py** in **./Mod/MacroAtStartup** folder. If it doesn't exist cre
 
 .local/share/FreeCAD/v1-2/Mod/MacroAtStartup/InitGui.py
 
-Note that **Macro** folder and **Mod** folders are next to each other. 
+Note that **./Macro** folder and **./Mod** folders are next to each other. 
 
 
 
