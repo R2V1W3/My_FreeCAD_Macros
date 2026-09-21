@@ -20,6 +20,6 @@ Edit Line 16: **Gui.runCommand("Std_ViewFitAll")** to run any built in FreeCAD c
 
 # * <ins>Color Swatches Macro</ins>
 
-This Macro applies color to selected objects.
+This Macro applies color to selected objects. Select objects, then select color. 
 #
 Macro creates **"Quick Colors"** Panel and by default places it at the bottom. It's dockable so can be moved elsewhere. 
