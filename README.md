@@ -25,7 +25,7 @@ This Macro applies color to selected objects. Select objects, then select color.
 Macro creates **"Quick Colors"** Panel and by default places it at the bottom. It's dockable so can be moved elsewhere. You can run ColorSwatches.FCMacro manually every time you start FreeCAD, or you can run ColorSwatches,py to run automatically at start. 
 #
 To **run macro** at startup:
-Place **ColorSwatches.py* in your **Macro** folder, such as this Linux full path when running AppImage:
+Place **ColorSwatches.py** in your **Macro** folder, such as this Linux full path when running AppImage:
 
 .local/share/FreeCAD/v1-2/Macro/ColorSwatches.py
 
