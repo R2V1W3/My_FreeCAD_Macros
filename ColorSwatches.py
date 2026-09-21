@@ -8,7 +8,7 @@ class ColorPanelWidget(QtGui.QWidget):
   def __init__(self):
     super().__init__()
 
-    # Define 5 color choices (RGB tuples scaled 0.0 to 1.0)
+    # Define color choices (RGB tuples scaled 0.0 to 1.0 by dividing by RGB color by 255)
     self.colors = {
         'Red': (0.8, 0.1, 0.1),
         'Green': (0.1, 0.8, 0.1),
