@@ -22,4 +22,19 @@ Edit Line 16: **Gui.runCommand("Std_ViewFitAll")** to run any built in FreeCAD c
 
 This Macro applies color to selected objects. Select objects, then select color. 
 #
-Macro creates **"Quick Colors"** Panel and by default places it at the bottom. It's dockable so can be moved elsewhere. 
+Macro creates **"Quick Colors"** Panel and by default places it at the bottom. It's dockable so can be moved elsewhere. You can run ColorSwatches.FCMacro manually every time you start FreeCAD, or you can run ColorSwatches,py to run automatically at start. 
+#
+To **run macro** at startup:
+Place **ColorSwatches.py* in your **Macro** folder, such as this Linux full path when running AppImage:
+
+.local/share/FreeCAD/v1-2/Macro/ColorSwatches.py
+
+Place **InitGui.py** in **Mod/MacroAtStartup** folder. If it doesn't exist create it. Linux full path: 
+
+.local/share/FreeCAD/v1-2/Mod/MacroAtStartup/InitGui.py
+
+Note that **Macro** folder and **Mod** folders are next to each other. 
+
+
+
+
