@@ -18,3 +18,8 @@ This Macro listens to Mouse Long-right-click with 400ms delay (_Line: 8 LONGH_CL
 #
 Edit Line 16: **Gui.runCommand("Std_ViewFitAll")** to run any built in FreeCAD command with Long_Right_Click
 
+# * <ins>Color Swatches Macro</ins>
+
+This Macro applies color to selected objects.
+#
+Macro creates **"Quick Colors"** Panel and by default places it at the bottom. It's dockable so can be moved elsewhere. 
