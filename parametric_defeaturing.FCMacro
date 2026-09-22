@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.10.rev2"
+__version__ = "0.2026.09.21.rev1"
+#__updated by__="<R2V1W3> 2026"
 #__version__ = "0.2021.10.10.rev2"
 #__title__ = "Parametric Defeaturing Macro"
 #__author__ = "<TheMarkster> 2021"
