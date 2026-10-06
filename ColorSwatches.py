@@ -8,7 +8,7 @@ class ColorPanelWidget(QtGui.QWidget):
   def __init__(self):
     super().__init__()
 
-    # Define color choices (RGB tuples scaled 0.0 to 1.0 by dividing by RGB color by 255)
+    # Define 5 color choices (RGB tuples scaled 0.0 to 1.0)
     self.colors = {
         'Red': (0.8, 0.1, 0.1),
         'Green': (0.1, 0.8, 0.1),
@@ -52,9 +52,31 @@ class ColorPanelWidget(QtGui.QWidget):
     if not sel:
       return
 
+    # Track bodies we've already colored to avoid duplicate work if multiple tips are selected
+    colored_objects = set()
+
     for obj in sel:
-      if hasattr(obj, 'ViewObject') and obj.ViewObject:
-        obj.ViewObject.ShapeColor = rgb_color
+      target_obj = obj
+      
+      # Check if the selected item is a feature inside a PartDesign Body
+      if hasattr(obj, 'getContainer') and obj.getContainer():
+        target_obj = obj.getContainer()
+      
+      # Fallback: manually check parents if getContainer() missed it
+      elif hasattr(obj, 'InList'):
+        for parent in obj.InList:
+          if parent.isDerivedFrom('PartDesign::Body'):
+            target_obj = parent
+            break
+
+      # Apply color to the target Body (or the original object if no body was found)
+      if target_obj not in colored_objects:
+        if hasattr(target_obj, 'ViewObject') and target_obj.ViewObject:
+          target_obj.ViewObject.ShapeColor = rgb_color
+          colored_objects.add(target_obj)
+          
+    # Force FreeCAD to refresh the view and register the change
+    App.ActiveDocument.recompute()
 
 
 def run():
@@ -94,3 +116,4 @@ def run():
 # This line ensures the macro can still be run manually inside FreeCAD
 if __name__ == "__main__":
     run()
+
